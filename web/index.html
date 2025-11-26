@@ -8,81 +8,21 @@
   <meta name="description" content="Description">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0">
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/docsify@4/lib/themes/vue.css">
-  <style>
-    .breadcrumbs {
-      padding: 10px 0;
-      margin-bottom: 20px;
-      font-size: 14px;
-      color: #666;
-      border-bottom: 1px solid #eee;
-    }
-
-    .breadcrumbs a {
-      color: #42b983;
-      text-decoration: none;
-    }
-
-    .breadcrumbs a:hover {
-      text-decoration: underline;
-    }
-  </style>
+  <link rel="stylesheet" href="./css/main.css">
 </head>
 
 <body>
   <div id="app"></div>
+
+  <!-- Botón para cambiar tema -->
+  <button class="theme-toggle" onclick="toggleTheme()" aria-label="Cambiar tema">
+    <span id="theme-icon">🌙</span>
+  </button>
+
+  <script src="js/theme.js"></script>
+  <script src="js/config.js"></script>
   <script>
-    window.$docsify = {
-      name: 'Proyectos en Dassi',
-      repo: '',
-      subMaxLevel: 2,
-      loadNavbar: false,
-      search: {
-        paths: 'auto',
-        placeholder: 'Buscar...',
-        noData: 'Sin resultados',
-        depth: 3
-      },
-      plugins: [
-        function (hook) {
-          hook.beforeEach(function (content) {
-            // Obtener el directorio actual del archivo que se está renderizando
-            const fullPath = window.location.hash.replace('#/', '');
-            const currentDir = fullPath.substring(0, fullPath.lastIndexOf('/'));
-
-            // Si estamos en un subdirectorio, reescribir enlaces relativos a rutas absolutas de Docsify
-            if (currentDir) {
-              content = content.replace(
-                /\[([^\]]+)\]\((?!https?:\/\/)(?!#)(?!\/)([^)]+)\)/g,
-                function(match, linkText, linkHref) {
-                  // Convertir enlace relativo a ruta absoluta de Docsify
-                  const absolutePath = currentDir + '/' + linkHref;
-                  console.log('Reescritura: ',linkHref, absolutePath);
-                  return '[' + linkText + '](' + absolutePath + ')';
-                }
-              );
-            }
-
-            // Generar breadcrumbs basados en la ruta
-            const path = window.location.hash.replace('#/', '').split('/');
-            let breadcrumbs = '<div class="breadcrumbs">';
-            let currentPath = '';
-
-            breadcrumbs += '<a href="#/">Inicio</a>';
-
-            path.forEach((segment, index) => {
-              if (segment && index < path.length - 1) {
-                currentPath += '/' + segment;
-                const name = segment.replace(/-/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
-                breadcrumbs += ` > <a href="#${currentPath}/">${name}</a>`;
-              }
-            });
-
-            breadcrumbs += '</div>\n\n';
-            return breadcrumbs + content;
-          });
-        }
-      ]
-    }
+    window.$docsify = docsify;
   </script>
   <script src="https://cdn.jsdelivr.net/npm/docsify@4"></script>
   <script src="https://cdn.jsdelivr.net/npm/docsify@4/lib/plugins/search.min.js"></script>
