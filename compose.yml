@@ -1,0 +1,18 @@
+services:
+  docs-serve:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile
+    image: dassi0cl/docsserve:latest
+    restart: always
+    env_file:
+      - .env
+    volumes:
+      - ./web:/app
+      - ./README.md:/app/demo/README.md
+      - security-auth-access:/etc/nginx/security
+    ports:
+      - 8420:80
+
+volumes:
+  security-auth-access:

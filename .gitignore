@@ -1,0 +1,8 @@
+.env
+.secrets
+
+web
+!web/index.html
+!web/demo
+!web/50x.html
+!web/REAMDME
