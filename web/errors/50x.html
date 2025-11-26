@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Error del servidor - Documentación</title>
+  <style>
+    :root {
+      /* Colores modo claro */
+      --primary: oklch(0.52 0.09 220);
+      --primary-foreground: oklch(1.0000 0 0);
+      --secondary: oklch(0.55 0.16 40);
+      --background: oklch(0.9821 0 0);
+      --foreground: oklch(0.3211 0 0);
+      --muted: oklch(0.95 0.01 220);
+      --muted-foreground: oklch(0.5382 0 0);
+      --border: oklch(0.88 0 0);
+      --warning: oklch(0.68 0.12 70);
+    }
+
+    @media (prefers-color-scheme: dark) {
+      :root {
+        /* Colores modo oscuro */
+        --primary: oklch(0.62 0.10 220);
+        --primary-foreground: oklch(0.98 0 0);
+        --secondary: oklch(0.60 0.15 40);
+        --background: oklch(0.18 0 0);
+        --foreground: oklch(0.95 0 0);
+        --muted: oklch(0.28 0.01 220);
+        --muted-foreground: oklch(0.68 0 0);
+        --border: oklch(0.30 0 0);
+        --warning: oklch(0.72 0.12 70);
+      }
+    }
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+      background-color: var(--background);
+      color: var(--foreground);
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 2rem;
+      line-height: 1.6;
+      transition: background-color 0.3s ease, color 0.3s ease;
+    }
+
+    .container {
+      max-width: 600px;
+      text-align: center;
+    }
+
+    .icon {
+      font-size: 4rem;
+      margin-bottom: 1.5rem;
+      opacity: 0.9;
+    }
+
+    h1 {
+      font-size: 2rem;
+      margin-bottom: 1rem;
+      color: var(--foreground);
+    }
+
+    p {
+      font-size: 1.125rem;
+      color: var(--muted-foreground);
+      margin-bottom: 2rem;
+      max-width: 500px;
+      margin-left: auto;
+      margin-right: auto;
+    }
+
+    .actions {
+      display: flex;
+      gap: 1rem;
+      justify-content: center;
+      flex-wrap: wrap;
+      margin-bottom: 3rem;
+    }
+
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      padding: 0.75rem 1.5rem;
+      border-radius: 0.5rem;
+      font-size: 1rem;
+      font-weight: 500;
+      text-decoration: none;
+      transition: all 0.2s ease;
+      border: none;
+      cursor: pointer;
+    }
+
+    .btn-primary {
+      background: var(--secondary);
+      color: var(--primary-foreground);
+    }
+
+    .btn-primary:hover {
+      opacity: 0.9;
+      transform: translateY(-1px);
+    }
+
+    .btn-secondary {
+      background: var(--muted);
+      color: var(--foreground);
+      border: 1px solid var(--border);
+    }
+
+    .btn-secondary:hover {
+      background: var(--background);
+    }
+
+    .help-text {
+      font-size: 0.875rem;
+      color: var(--muted-foreground);
+      margin-top: 2rem;
+      padding: 1rem;
+      background: var(--muted);
+      border-radius: 0.5rem;
+      border-left: 4px solid var(--warning);
+    }
+
+    .error-code {
+      position: absolute;
+      top: 1rem;
+      right: 1rem;
+      font-size: 0.75rem;
+      color: var(--muted-foreground);
+      opacity: 0.7;
+    }
+
+    @media screen and (max-width: 768px) {
+      h1 {
+        font-size: 1.5rem;
+      }
+
+      p {
+        font-size: 1rem;
+      }
+
+      .icon {
+        font-size: 3rem;
+      }
+
+      .actions {
+        flex-direction: column;
+      }
+
+      .btn {
+        width: 100%;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="error-code">Error 50x</div>
+
+  <div class="container">
+    <div class="icon">⚠️</div>
+
+    <h1>Error del servidor</h1>
+
+    <p>
+      Estamos experimentando problemas técnicos. Por favor, intenta nuevamente en unos momentos.
+    </p>
+
+    <div class="actions">
+      <button class="btn btn-primary" onclick="location.reload()">
+        🔄 Recargar página
+      </button>
+      <a href="/" class="btn btn-secondary">
+        ← Volver al inicio
+      </a>
+    </div>
+
+    <div class="help-text">
+      <strong>Si el problema persiste:</strong><br>
+      Contacta al equipo de soporte técnico. El error ha sido registrado automáticamente.
+    </div>
+  </div>
+</body>
+</html>

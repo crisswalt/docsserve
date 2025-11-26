@@ -1,0 +1,481 @@
+/* ============================================
+   DOCSIFY THEME - Dassi Design System
+   Basado en identidad de marca: Celeste #177996 + Naranjo #CB4500
+   ============================================ */
+
+/* ============================================
+   SISTEMA DE COLORES BASE - MODO CLARO
+   ============================================ */
+
+:root {
+  /* Colores de identidad */
+  --primary: oklch(0.52 0.09 220);                  /* Celeste #177996 */
+  --primary-foreground: oklch(1.0000 0 0);
+
+  --secondary: oklch(0.55 0.16 40);                 /* Naranjo #CB4500 */
+  --secondary-foreground: oklch(1.0000 0 0);
+
+  /* Superficies */
+  --background: oklch(0.9821 0 0);
+  --foreground: oklch(0.3211 0 0);
+
+  --card: oklch(1.0000 0 0);
+  --card-foreground: oklch(0.3211 0 0);
+
+  /* Funcionales derivados */
+  --success: oklch(0.54 0.09 170);
+  --success-foreground: oklch(1.0000 0 0);
+
+  --warning: oklch(0.68 0.12 70);
+  --warning-foreground: oklch(0.2000 0 0);
+
+  --destructive: oklch(0.55 0.20 28);
+  --destructive-foreground: oklch(1.0000 0 0);
+
+  /* Semánticos contextuales */
+  --muted: oklch(0.95 0.01 220);
+  --muted-foreground: oklch(0.5382 0 0);
+
+  --accent: oklch(0.92 0.02 220);
+  --accent-foreground: oklch(0.3211 0 0);
+
+  --info: oklch(0.60 0.11 220);
+  --info-foreground: oklch(1.0000 0 0);
+
+  /* Bordes */
+  --border: oklch(0.88 0 0);
+  --input: oklch(0.88 0 0);
+  --ring: oklch(0.52 0.09 220);
+
+  /* ============================================
+     VARIABLES DOCSIFY
+     ============================================ */
+
+  /* Theme color principal (usado por Docsify internamente) */
+  --theme-color: oklch(0.52 0.09 220);
+  --theme-color-secondary: oklch(0.55 0.16 40);
+
+  /* Fondo y texto base */
+  --base-background-color: oklch(0.9821 0 0);
+  --base-color: oklch(0.3211 0 0);
+
+  /* Enlaces */
+  --link-color: oklch(0.52 0.09 220);
+  --link-color-hover: oklch(0.60 0.11 220);
+  --link-text-decoration: none;
+  --link-text-decoration-hover: underline;
+
+  /* Código inline */
+  --code-inline-background: oklch(0.95 0.01 220);
+  --code-inline-color: oklch(0.3211 0 0);
+  --code-inline-border-radius: 4px;
+
+  /* Bloques de código */
+  --code-block-background: oklch(1.0000 0 0);
+  --code-block-color: oklch(0.3211 0 0);
+  --code-block-border-radius: 6px;
+
+  /* Sidebar */
+  --sidebar-width: 300px;
+  --sidebar-background: oklch(1.0000 0 0);
+  --sidebar-border-color: oklch(0.88 0 0);
+  --sidebar-nav-link-color: oklch(0.3211 0 0);
+  --sidebar-nav-link-color--hover: oklch(0.52 0.09 220);
+  --sidebar-nav-link-color--active: oklch(0.52 0.09 220);
+  --sidebar-nav-link-background-color--hover: oklch(0.92 0.02 220);
+  --sidebar-nav-link-border-color--active: oklch(0.52 0.09 220);
+  --sidebar-nav-link-font-weight--active: 600;
+
+  /* Headings */
+  --heading-h1-color: oklch(0.3211 0 0);
+  --heading-h2-color: oklch(0.3211 0 0);
+  --heading-h3-color: oklch(0.3211 0 0);
+  --heading-h1-font-size: 2.5rem;
+  --heading-h2-font-size: 2rem;
+  --heading-h3-font-size: 1.5rem;
+
+  /* Búsqueda */
+  --search-input-background-color: oklch(0.9821 0 0);
+  --search-input-border-color: oklch(0.88 0 0);
+  --search-input-border-color--focus: oklch(0.52 0.09 220);
+  --search-input-placeholder-color: oklch(0.5382 0 0);
+  --search-result-heading-color: oklch(0.52 0.09 220);
+  --search-result-background-color--hover: oklch(0.92 0.02 220);
+
+  /* Blockquotes */
+  --blockquote-border-color: oklch(0.52 0.09 220);
+  --blockquote-color: oklch(0.4 0 0);
+  --blockquote-background: oklch(0.95 0.01 220);
+
+  /* Tablas */
+  --table-head-background: oklch(0.95 0.01 220);
+  --table-row-even-background: oklch(0.9821 0 0);
+  --table-row-odd-background: oklch(1.0000 0 0);
+  --table-border-color: oklch(0.88 0 0);
+}
+
+/* ============================================
+   MODO OSCURO
+   ============================================ */
+
+/* Modo oscuro por clase (para toggle manual) */
+:root.dark,
+body.dark {
+  /* Colores de identidad ajustados */
+  --primary: oklch(0.62 0.10 220);
+  --primary-foreground: oklch(0.98 0 0);
+
+  --secondary: oklch(0.60 0.15 40);
+  --secondary-foreground: oklch(0.98 0 0);
+
+  /* Superficies oscuras */
+  --background: oklch(0.18 0 0);
+  --foreground: oklch(0.95 0 0);
+
+  --card: oklch(0.22 0 0);
+  --card-foreground: oklch(0.95 0 0);
+
+  /* Funcionales derivados */
+  --success: oklch(0.60 0.10 170);
+  --success-foreground: oklch(0.98 0 0);
+
+  --warning: oklch(0.72 0.12 70);
+  --warning-foreground: oklch(0.18 0 0);
+
+  --destructive: oklch(0.60 0.20 28);
+  --destructive-foreground: oklch(0.98 0 0);
+
+  /* Semánticos contextuales */
+  --muted: oklch(0.28 0.01 220);
+  --muted-foreground: oklch(0.68 0 0);
+
+  --accent: oklch(0.26 0.02 220);
+  --accent-foreground: oklch(0.95 0 0);
+
+  --info: oklch(0.65 0.11 220);
+  --info-foreground: oklch(0.98 0 0);
+
+  /* Bordes */
+  --border: oklch(0.30 0 0);
+  --input: oklch(0.30 0 0);
+  --ring: oklch(0.62 0.10 220);
+
+  /* Variables Docsify modo oscuro */
+  --theme-color: oklch(0.62 0.10 220);
+  --theme-color-secondary: oklch(0.60 0.15 40);
+
+  --base-background-color: oklch(0.18 0 0);
+  --base-color: oklch(0.95 0 0);
+
+  --link-color: oklch(0.62 0.10 220);
+  --link-color-hover: oklch(0.65 0.11 220);
+
+  --code-inline-background: oklch(0.28 0.01 220);
+  --code-inline-color: oklch(0.95 0 0);
+
+  --code-block-background: oklch(0.22 0 0);
+  --code-block-color: oklch(0.95 0 0);
+
+  --sidebar-background: oklch(0.22 0 0);
+  --sidebar-border-color: oklch(0.30 0 0);
+  --sidebar-nav-link-color: oklch(0.95 0 0);
+  --sidebar-nav-link-color--hover: oklch(0.62 0.10 220);
+  --sidebar-nav-link-color--active: oklch(0.62 0.10 220);
+  --sidebar-nav-link-background-color--hover: oklch(0.26 0.02 220);
+
+  --search-input-background-color: oklch(0.18 0 0);
+  --search-input-border-color: oklch(0.30 0 0);
+  --search-input-border-color--focus: oklch(0.62 0.10 220);
+
+  --blockquote-border-color: oklch(0.62 0.10 220);
+  --blockquote-color: oklch(0.68 0 0);
+  --blockquote-background: oklch(0.28 0.01 220);
+
+  --table-head-background: oklch(0.28 0.01 220);
+  --table-row-even-background: oklch(0.18 0 0);
+  --table-row-odd-background: oklch(0.22 0 0);
+  --table-border-color: oklch(0.30 0 0);
+}
+
+/* ============================================
+   APLICAR ESTILOS A DOCSIFY
+   ============================================ */
+
+/* Aplicar colores de fondo globales */
+html,
+body {
+  background-color: var(--base-background-color) !important;
+  color: var(--base-color) !important;
+  transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+/* Contenedor principal */
+#main,
+.content,
+#app {
+  background-color: var(--base-background-color) !important;
+  min-height: 100vh;
+}
+
+/* Sidebar */
+.sidebar {
+  background-color: var(--sidebar-background) !important;
+  border-right: 1px solid var(--sidebar-border-color);
+}
+
+.sidebar-nav a {
+  color: var(--sidebar-nav-link-color);
+  transition: all 0.2s ease;
+}
+
+.sidebar-nav a:hover {
+  color: var(--sidebar-nav-link-color--hover);
+  background-color: var(--sidebar-nav-link-background-color--hover);
+}
+
+.sidebar-nav li.active > a {
+  color: var(--sidebar-nav-link-color--active);
+  font-weight: var(--sidebar-nav-link-font-weight--active);
+  border-right: 2px solid var(--sidebar-nav-link-border-color--active);
+}
+
+/* Contenido markdown */
+.markdown-section {
+  color: var(--base-color);
+}
+
+.markdown-section a {
+  color: var(--link-color);
+  text-decoration: var(--link-text-decoration);
+  transition: color 0.2s ease;
+}
+
+.markdown-section a:hover {
+  color: var(--link-color-hover);
+  text-decoration: var(--link-text-decoration-hover);
+}
+
+/* Código inline */
+.markdown-section code {
+  background-color: var(--code-inline-background);
+  color: var(--code-inline-color);
+  padding: 2px 6px;
+  border-radius: var(--code-inline-border-radius);
+  font-family: var(--code-font-family);
+}
+
+/* Bloques de código */
+.markdown-section pre {
+  background-color: var(--code-block-background);
+  border-radius: var(--code-block-border-radius);
+}
+
+.markdown-section pre > code {
+  background-color: var(--code-block-background);
+  color: var(--code-block-color);
+  font-family: var(--code-font-family);
+}
+
+/* Blockquotes */
+.markdown-section blockquote {
+  border-left: 4px solid var(--blockquote-border-color);
+  background: var(--blockquote-background);
+  color: var(--blockquote-color);
+  padding: 1rem;
+  margin: 1.5rem 0;
+}
+
+/* Tablas */
+.markdown-section table {
+  border-collapse: collapse;
+  border: 1px solid var(--table-border-color);
+}
+
+.markdown-section table thead {
+  background: var(--table-head-background);
+}
+
+.markdown-section table tr:nth-child(even) {
+  background: var(--table-row-even-background);
+}
+
+.markdown-section table tr:nth-child(odd) {
+  background: var(--table-row-odd-background);
+}
+
+.markdown-section table th,
+.markdown-section table td {
+  border: 1px solid var(--table-border-color);
+}
+
+/* Búsqueda */
+.search input {
+  background: var(--search-input-background-color);
+  border: 1px solid var(--search-input-border-color);
+  color: var(--base-color);
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.search input::placeholder {
+  color: var(--search-input-placeholder-color);
+}
+
+.search input:focus {
+  border-color: var(--search-input-border-color--focus);
+  box-shadow: 0 0 0 2px oklch(from var(--primary) l c h / 0.1);
+  outline: none;
+}
+
+.search .results-panel {
+  background: var(--sidebar-background);
+  border: 1px solid var(--sidebar-border-color);
+}
+
+.search .matching-post {
+  border-bottom: 1px solid var(--sidebar-border-color);
+}
+
+.search .matching-post:hover {
+  background: var(--search-result-background-color--hover);
+}
+
+/* Headings */
+.markdown-section h1 {
+  color: var(--heading-h1-color);
+  font-size: var(--heading-h1-font-size);
+}
+
+.markdown-section h2 {
+  color: var(--heading-h2-color);
+  font-size: var(--heading-h2-font-size);
+}
+
+.markdown-section h3 {
+  color: var(--heading-h3-color);
+  font-size: var(--heading-h3-font-size);
+}
+
+/* ============================================
+   BREADCRUMBS PERSONALIZADOS
+   ============================================ */
+
+.breadcrumbs {
+  padding: 10px 0;
+  margin-bottom: 20px;
+  font-size: 14px;
+  color: var(--muted-foreground);
+  border-bottom: 1px solid var(--border);
+}
+
+.breadcrumbs a {
+  color: var(--link-color);
+  text-decoration: none;
+  transition: color 0.2s ease;
+}
+
+.breadcrumbs a:hover {
+  color: var(--link-color-hover);
+  text-decoration: underline;
+}
+
+/* ============================================
+   RESPONSIVE - MOBILE OPTIMIZATIONS
+   ============================================ */
+
+@media screen and (max-width: 768px) {
+  .markdown-section {
+    padding: 15px !important;
+  }
+
+  .markdown-section h1 {
+    font-size: 1.8rem !important;
+    margin: 0 0 1rem !important;
+  }
+
+  .markdown-section h2 {
+    font-size: 1.5rem !important;
+  }
+
+  .markdown-section h3 {
+    font-size: 1.3rem !important;
+  }
+
+  .breadcrumbs {
+    font-size: 12px;
+    padding: 8px 0;
+    overflow-x: auto;
+    white-space: nowrap;
+  }
+
+  .sidebar {
+    padding: 10px 15px !important;
+  }
+
+  .sidebar-nav li {
+    margin: 6px 0 !important;
+  }
+
+  .search input {
+    width: 100% !important;
+  }
+
+  /* Mejor legibilidad en móvil */
+  .markdown-section p,
+  .markdown-section ul,
+  .markdown-section ol {
+    line-height: 1.6 !important;
+  }
+
+  /* Tablas responsivas */
+  .markdown-section table {
+    display: block;
+    overflow-x: auto;
+    white-space: nowrap;
+  }
+
+  /* Código más legible en móvil */
+  .markdown-section pre {
+    padding: 10px !important;
+    font-size: 13px !important;
+  }
+}
+
+/* ============================================
+   TOGGLE DARK MODE (opcional)
+   ============================================ */
+
+.theme-toggle {
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: var(--primary);
+  color: var(--primary-foreground);
+  border: none;
+  cursor: pointer;
+  box-shadow: var(--shadow-md);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 18px;
+  transition: all 0.3s ease;
+  z-index: 999;
+}
+
+.theme-toggle:hover {
+  background: var(--info);
+  transform: scale(1.1);
+  box-shadow: var(--shadow-lg);
+}
+
+@media screen and (max-width: 768px) {
+  .theme-toggle {
+    width: 36px;
+    height: 36px;
+    bottom: 15px;
+    right: 15px;
+    font-size: 16px;
+  }
+}
