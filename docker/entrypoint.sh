@@ -75,10 +75,36 @@ Bienvenido al portal de documentación de proyectos. Aquí encontrarás toda la 
 
 EOF
 
+# Directorios a excluir por defecto (separados por espacios)
+EXCLUDE_DEFAULT=${EXCLUDE_DIRS_DEFAULT:-"css js errors"}
+
+# Directorios personalizados a excluir (separados por espacios)
+EXCLUDE_CUSTOM=${EXCLUDE_DIRS_CUSTOM:-""}
+
+# Combinar todas las exclusiones
+EXCLUDE_ALL="$EXCLUDE_DEFAULT $EXCLUDE_CUSTOM"
+
+# Función para verificar si un directorio debe ser excluido
+should_exclude() {
+    local dir_name="$1"
+    for excluded in $EXCLUDE_ALL; do
+        if [ "$dir_name" = "$excluded" ]; then
+            return 0  # Verdadero, debe excluirse
+        fi
+    done
+    return 1  # Falso, no debe excluirse
+}
+
 # Buscar directorios de proyectos (excluir directorios ocultos y archivos)
 for project_dir in /app/*/; do
     # Obtener solo el nombre del directorio sin la ruta completa
     project_name=$(basename "$project_dir")
+
+    # Verificar si el directorio debe ser excluido
+    if should_exclude "$project_name"; then
+        echo "  Excluyendo directorio: $project_name"
+        continue
+    fi
 
     # Ignorar directorios que no son proyectos (como archivos sueltos)
     if [ -d "$project_dir" ]; then
