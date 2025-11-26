@@ -10,6 +10,19 @@ echo "Configurando autenticación básica..."
 rm -f /etc/nginx/security/*.conf
 rm -f /etc/nginx/security/.htpasswd*
 
+if [ -n "$AUTH_GLOBAL" ]; then
+    username=$(echo "$AUTH_GLOBAL" | cut -d: -f1)
+    password=$(echo "$AUTH_GLOBAL" | cut -d: -f2-)
+
+    if [ -n "$username" ] && [ -n "$password" ]; then
+        echo "  Configurando autenticación global"
+
+        # Crear archivo htpasswd global
+        htpasswd_file="/etc/nginx/security/.htpasswd_global"
+        htpasswd -bc "$htpasswd_file" "$username" "$password"
+    fi
+fi
+
 # Procesar variables de entorno AUTH_PROJECT*
 for var in $(env | grep "^AUTH_PROJECT" | cut -d= -f1); do
     auth_value="${!var}"
@@ -25,12 +38,22 @@ for var in $(env | grep "^AUTH_PROJECT" | cut -d= -f1); do
 
             # Crear archivo htpasswd para este proyecto
             htpasswd_file="/etc/nginx/security/.htpasswd_${project_name}"
-            htpasswd -bc "$htpasswd_file" "$username" "$password"
+
+            # Si existe htpasswd global y no existe el del proyecto, copiarlo como base
+            if [ -f "/etc/nginx/security/.htpasswd_global" ] && [ ! -f "$htpasswd_file" ]; then
+                cp "/etc/nginx/security/.htpasswd_global" "$htpasswd_file"
+            else
+                touch "$htpasswd_file"
+            fi
+
+            htpasswd -b "$htpasswd_file" "$username" "$password"
+
+            [ -f "/etc/nginx/security/${project_name}.conf" ] && continue
 
             # Crear archivo de configuración nginx para este proyecto
             cat > "/etc/nginx/security/${project_name}.conf" <<EOF
 # Basic Authentication for project: ${project_name}
-location /${project_name}/ {
+location ^~ /${project_name} {
     auth_basic "Restricted Access - ${project_name}";
     auth_basic_user_file ${htpasswd_file};
 }
@@ -38,29 +61,6 @@ EOF
         fi
     fi
 done
-
-# Procesar autenticación global si está definida
-if [ -n "$AUTH_GLOBAL" ]; then
-    username=$(echo "$AUTH_GLOBAL" | cut -d: -f1)
-    password=$(echo "$AUTH_GLOBAL" | cut -d: -f2-)
-
-    if [ -n "$username" ] && [ -n "$password" ]; then
-        echo "  Configurando autenticación global"
-
-        # Crear archivo htpasswd global
-        htpasswd_file="/etc/nginx/security/.htpasswd_global"
-        htpasswd -bc "$htpasswd_file" "$username" "$password"
-
-        # Crear archivo de configuración nginx global
-        cat > "/etc/nginx/security/global.conf" <<EOF
-# Global Basic Authentication
-location / {
-    auth_basic "Restricted Access";
-    auth_basic_user_file ${htpasswd_file};
-}
-EOF
-    fi
-fi
 
 echo "Autenticación configurada exitosamente"
 echo ""
