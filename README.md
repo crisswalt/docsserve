@@ -7,7 +7,7 @@
 - **Servidor Nginx optimizado**: Basado en la imagen oficial de Nginx para alto rendimiento
 - **Renderizado Docsify**: Convierte archivos Markdown en documentación interactiva sin necesidad de compilación
 - **Autenticación multinivel**: Soporta autenticación HTTP Basic tanto global como por proyecto
-- **Generación automática de índices**: Crea dinámicamente la página principal con enlaces a todos los proyectos
+- **Generación automática de índices**: Crea dinámicamente la página principal con enlaces a todos los proyectos, con soporte para exclusiones personalizadas
 - **Auto-navegación con breadcrumbs**: Navegación contextual automática en todos los documentos
 - **Búsqueda integrada**: Búsqueda en tiempo real en toda la documentación
 - **Hot-reload**: Los cambios en archivos Markdown se reflejan instantáneamente sin reiniciar el contenedor
@@ -35,9 +35,12 @@ Crea un archivo `.env` basado en `.env-example`:
 cp .env-example .env
 ```
 
-Edita el archivo `.env` para configurar la autenticación:
+Edita el archivo `.env` para configurar el entorno, autenticación y exclusiones:
 
 ```env
+# Modo de entorno
+ENVIRONMENT=production  # o 'development' para hot-reload
+
 # Autenticación global (opcional)
 # Formato: usuario:contraseña
 AUTH_GLOBAL=admin:secretpassword
@@ -46,6 +49,10 @@ AUTH_GLOBAL=admin:secretpassword
 # Formato: nombre-proyecto:usuario:contraseña
 AUTH_PROJECT_1=ethersens:user1:pass123
 AUTH_PROJECT_2=demo:user2:pass456
+
+# Exclusión de directorios del índice (opcional)
+EXCLUDE_DIRS_DEFAULT=css js errors
+EXCLUDE_DIRS_CUSTOM=proyecto-secreto confidencial
 ```
 
 ### 3. Agregar documentación
@@ -66,8 +73,12 @@ web/
 ### 4. Iniciar el servidor
 
 ```bash
-docker compose up -d
+./start.sh
 ```
+
+El script detectará automáticamente el modo de entorno desde `.env`:
+- **Production**: Despliega el contenedor estándar
+- **Development**: Habilita hot-reload para la configuración de Nginx
 
 El servidor estará disponible en `http://localhost:8420`
 
@@ -80,10 +91,45 @@ docker compose logs -f
 ### 6. Detener el servidor
 
 ```bash
+./stop.sh
+```
+
+O manualmente:
+
+```bash
 docker compose down
 ```
 
 ## Configuración
+
+### Modo de Entorno
+
+DocsServe soporta dos modos de operación:
+
+#### Production (Producción)
+
+Modo estándar para despliegue:
+
+```env
+ENVIRONMENT=production
+```
+
+- Configuración de Nginx compilada en la imagen
+- Cambios en `default.conf` requieren rebuild: `docker compose build`
+- Optimizado para estabilidad
+
+#### Development (Desarrollo)
+
+Modo de desarrollo con hot-reload:
+
+```env
+ENVIRONMENT=development
+```
+
+- Monta `docker/default.conf` como volumen
+- Cambios en la configuración de Nginx se aplican con: `docker compose restart`
+- No requiere rebuild de la imagen
+- Ideal para experimentar con configuraciones
 
 ### Autenticación
 
@@ -110,6 +156,42 @@ El `nombre-proyecto` debe coincidir con el nombre del directorio en `./web/`.
 
 **Nota**: Si se define `AUTH_GLOBAL`, esta tiene prioridad sobre las autenticaciones por proyecto.
 
+### Exclusión de Directorios
+
+Puedes controlar qué directorios aparecen en el índice principal (`README.md`) generado automáticamente:
+
+#### Exclusiones por Defecto
+
+Los directorios del sistema se excluyen automáticamente:
+
+```env
+EXCLUDE_DIRS_DEFAULT=css js errors
+```
+
+Estos directorios contienen assets estáticos y páginas de error, no proyectos de documentación.
+
+#### Exclusiones Personalizadas
+
+Para ocultar proyectos específicos del índice (por ejemplo, proyectos confidenciales o en desarrollo):
+
+```env
+EXCLUDE_DIRS_CUSTOM=proyecto-secreto ultra-confidencial borrador
+```
+
+**Importante**: Los directorios excluidos siguen siendo accesibles directamente via URL si conoces la ruta (ej: `http://localhost:8420/proyecto-secreto/`). Para protegerlos completamente, combina la exclusión con autenticación por proyecto.
+
+#### Ejemplo de Protección Completa
+
+Para un proyecto ultra-secreto, combina exclusión + autenticación:
+
+```env
+# Excluir del índice
+EXCLUDE_DIRS_CUSTOM=ultra-secreto
+
+# Proteger con autenticación
+AUTH_PROJECT_1=ultra-secreto:admin:password123
+```
+
 ### Cambiar el puerto
 
 Edita [compose.yml](compose.yml) y modifica el mapeo de puertos:
@@ -133,16 +215,19 @@ La configuración de Nginx se encuentra en [docker/default.conf](docker/default.
 ```
 DocsServe/
 ├── docker/
-│   ├── Dockerfile          # Imagen Docker basada en nginx:latest
-│   ├── default.conf        # Configuración de Nginx
-│   └── entrypoint.sh       # Script de inicialización (genera auth + índice)
-├── web/                    # Directorio de documentación (montado como volumen)
-│   ├── index.html          # Configuración de Docsify
-│   ├── README.md           # Índice principal (generado automáticamente)
-│   └── [proyectos]/        # Tus proyectos de documentación
-├── compose.yml             # Configuración de Docker Compose
-├── CLAUDE.md               # Instrucciones para Claude Code
-└── README.md               # Este archivo
+│   ├── Dockerfile                  # Imagen Docker basada en nginx:latest
+│   ├── default.conf                # Configuración de Nginx
+│   ├── development-compose.yml     # Override para modo development
+│   └── entrypoint.sh               # Script de inicialización (genera auth + índice)
+├── web/                            # Directorio de documentación (montado como volumen)
+│   ├── index.html                  # Configuración de Docsify
+│   ├── README.md                   # Índice principal (generado automáticamente)
+│   └── [proyectos]/                # Tus proyectos de documentación
+├── compose.yml                     # Configuración de Docker Compose
+├── start.sh                        # Script de inicio (detecta ENVIRONMENT)
+├── stop.sh                         # Script de parada
+├── CLAUDE.md                       # Instrucciones para Claude Code
+└── README.md                       # Este archivo
 ```
 
 ## Funcionamiento Interno
@@ -154,8 +239,9 @@ DocsServe/
    - Genera archivos `.htpasswd` para cada configuración
    - Crea archivos de configuración Nginx dinámicos en `/etc/nginx/security/`
 
-2. **Generación del índice principal** ([entrypoint.sh:68-115](docker/entrypoint.sh#L68-L115))
+2. **Generación del índice principal** ([entrypoint.sh:78-129](docker/entrypoint.sh#L78-L129))
    - Escanea directorios en `/app/`
+   - Excluye directorios definidos en `EXCLUDE_DIRS_DEFAULT` y `EXCLUDE_DIRS_CUSTOM`
    - Extrae títulos de archivos README.md de cada proyecto
    - Genera automáticamente `web/README.md` con enlaces a todos los proyectos
 
