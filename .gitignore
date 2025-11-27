@@ -1,14 +1,6 @@
 .env
 .secrets
-
-web
-!web/index.html
-!web/demo
-!web/50x.html
-!web/REAMDME
-!web/js
-!web/css
-!web/errors
-!web/_404.md
-
 commits.sh
+
+web/README.md
+web/_navbar.md
