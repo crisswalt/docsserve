@@ -11,27 +11,34 @@ rm -f /etc/nginx/security/*.conf
 rm -f /etc/nginx/security/.htpasswd*
 
 if [ -n "$AUTH_GLOBAL" ]; then
-    username=$(echo "$AUTH_GLOBAL" | cut -d: -f1)
-    password=$(echo "$AUTH_GLOBAL" | cut -d: -f2-)
+    # Parsear username:password usando awk
+    username=$(echo "$AUTH_GLOBAL" | awk -F: '{print $1}')
+    password=$(echo "$AUTH_GLOBAL" | awk -F: '{for(i=2;i<=NF;i++) printf "%s%s", $i, (i<NF?":":"")}')
 
     if [ -n "$username" ] && [ -n "$password" ]; then
         echo "  Configurando autenticación global"
 
         # Crear archivo htpasswd global
         htpasswd_file="/etc/nginx/security/.htpasswd_global"
-        htpasswd -bc "$htpasswd_file" "$username" "$password"
+
+        # Detectar si la contraseña ya está hasheada (empieza con $)
+        if [[ "$password" == \$* ]]; then
+            # Contraseña hasheada: escribir directamente en formato username:hash
+            echo "${username}:${password}" > "$htpasswd_file"
+        else
+            # Contraseña en texto plano: hashear con htpasswd
+            htpasswd -bc "$htpasswd_file" "$username" "$password"
+        fi
     fi
 fi
 
 # Procesar variables de entorno AUTH_PROJECT*
-for var in $(env | grep "^AUTH_PROJECT" | cut -d= -f1); do
-    auth_value="${!var}"
-
+env | grep "^AUTH_PROJECT" | while IFS='=' read -r var auth_value; do
     if [ -n "$auth_value" ]; then
-        # Parsear PROJECT_NAME:username:password
-        project_name=$(echo "$auth_value" | cut -d: -f1)
-        username=$(echo "$auth_value" | cut -d: -f2)
-        password=$(echo "$auth_value" | cut -d: -f3-)
+        # Parsear PROJECT_NAME:username:password usando awk
+        project_name=$(echo "$auth_value" | awk -F: '{print $1}')
+        username=$(echo "$auth_value" | awk -F: '{print $2}')
+        password=$(echo "$auth_value" | awk -F: '{for(i=3;i<=NF;i++) printf "%s%s", $i, (i<NF?":":"")}')
 
         if [ -n "$project_name" ] && [ -n "$username" ] && [ -n "$password" ]; then
             echo "  Configurando autenticación para proyecto: $project_name"
@@ -39,14 +46,22 @@ for var in $(env | grep "^AUTH_PROJECT" | cut -d= -f1); do
             # Crear archivo htpasswd para este proyecto
             htpasswd_file="/etc/nginx/security/.htpasswd_${project_name}"
 
-            # Si existe htpasswd global y no existe el del proyecto, copiarlo como base
-            if [ -f "/etc/nginx/security/.htpasswd_global" ] && [ ! -f "$htpasswd_file" ]; then
-                cp "/etc/nginx/security/.htpasswd_global" "$htpasswd_file"
-            else
-                touch "$htpasswd_file"
+            # Inicializar archivo (puede sobrescribirse si ya existe)
+            touch "$htpasswd_file"
+
+            # Siempre agregar usuario global primero si existe
+            if [ -f "/etc/nginx/security/.htpasswd_global" ]; then
+                cat "/etc/nginx/security/.htpasswd_global" > "$htpasswd_file"
             fi
 
-            htpasswd -b "$htpasswd_file" "$username" "$password"
+            # Detectar si la contraseña ya está hasheada (empieza con $)
+            if [[ "$password" == \$* ]]; then
+                # Contraseña hasheada: escribir directamente en formato username:hash
+                echo "${username}:${password}" >> "$htpasswd_file"
+            else
+                # Contraseña en texto plano: hashear con htpasswd
+                htpasswd -b "$htpasswd_file" "$username" "$password"
+            fi
 
             [ -f "/etc/nginx/security/${project_name}.conf" ] && continue
 
