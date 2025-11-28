@@ -46,28 +46,7 @@ const breadcrumbs = (hook) => {
     })
 };
 
-// !Deprecado!
-// const path_rewrite = (hook) => {
-//     hook.beforeEach((content) => {
-//         // Obtener el directorio actual del archivo que se está renderizando
-//         const fullPath = window.location.hash.replace('#/', '');
-//         const currentDir = fullPath.substring(0, fullPath.lastIndexOf('/'));
-
-//         // Si estamos en un subdirectorio, reescribir enlaces relativos a rutas absolutas de Docsify
-//         if (currentDir) {
-//             content = content.replace(
-//                 /\[([^\]]+)\]\((?!https?:\/\/)(?!#)(?!\/)([^)]+)\)/g,
-//                 function (match, linkText, linkHref) {
-//                     // Convertir enlace relativo a ruta absoluta de Docsify
-//                     const absolutePath = currentDir + '/' + linkHref;
-//                     console.log('Reescritura: ', linkHref, absolutePath);
-//                     return '[' + linkText + '](' + absolutePath + ')';
-//                 }
-//             );
-//         }
-
-//     });
-// }
-
 docsify.plugins = [breadcrumbs];
+
+window.$docsify = docsify;
 

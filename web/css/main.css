@@ -239,6 +239,10 @@ body {
   border-right: 2px solid var(--sidebar-nav-link-border-color--active);
 }
 
+.sidebar-toggle {
+  background-color: var(--background);
+}
+
 /* Contenido markdown */
 .markdown-section {
   color: var(--base-color);
