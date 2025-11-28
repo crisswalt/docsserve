@@ -69,7 +69,14 @@ env | grep "^AUTH_PROJECT" | while IFS='=' read -r var auth_value; do
             # Crear archivo de configuración nginx para este proyecto
             cat > "/etc/nginx/security/${project_name}.conf" <<EOF
 # Basic Authentication for project: ${project_name}
+# Proteger acceso directo al proyecto
 location ^~ /${project_name} {
+    auth_basic "Restricted Access - ${project_name}";
+    auth_basic_user_file ${htpasswd_file};
+}
+
+# Proteger archivos del proyecto accedidos a través de Docsify
+location ^~ /web/${project_name} {
     auth_basic "Restricted Access - ${project_name}";
     auth_basic_user_file ${htpasswd_file};
 }
