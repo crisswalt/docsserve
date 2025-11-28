@@ -10,6 +10,7 @@ echo "Configurando autenticación básica..."
 rm -f /etc/nginx/security/*.conf
 rm -f /etc/nginx/security/.htpasswd*
 
+# Configuración de autenticación
 if [ -n "$AUTH_GLOBAL" ]; then
     # Parsear username:password usando awk
     username=$(echo "$AUTH_GLOBAL" | awk -F: '{print $1}')
@@ -79,6 +80,7 @@ done
 
 echo "Autenticación configurada exitosamente"
 echo ""
+# Fin de configuración de autenticación
 
 # Construir el índice principal README.md
 cat > /app/README.md <<'EOF'
@@ -91,7 +93,7 @@ Bienvenido al portal de documentación de proyectos. Aquí encontrarás toda la 
 EOF
 
 # Directorios a excluir por defecto (separados por espacios)
-EXCLUDE_DEFAULT=${EXCLUDE_DIRS_DEFAULT:-"css js errors"}
+EXCLUDE_DEFAULT=${EXCLUDE_DIRS_DEFAULT:-"css js errors web"}
 
 # Directorios personalizados a excluir (separados por espacios)
 EXCLUDE_CUSTOM=${EXCLUDE_DIRS_CUSTOM:-""}
@@ -102,8 +104,10 @@ EXCLUDE_ALL="$EXCLUDE_DEFAULT $EXCLUDE_CUSTOM"
 # Función para verificar si un directorio debe ser excluido
 should_exclude() {
     local dir_name="$1"
+    local project_path="/app/${dir_name}"
     for excluded in $EXCLUDE_ALL; do
-        if [ "$dir_name" = "$excluded" ]; then
+        # Si existe una coincidencia exacta o project_path no es un directorio o no existe el archivo "README.md" en "$dir_name", excluir
+        if [[ "$dir_name" == "$excluded" ]] || [ ! -d "$project_path" ] || [ ! -f "${project_path}/README.md" ]; then
             return 0  # Verdadero, debe excluirse
         fi
     done
@@ -121,26 +125,14 @@ for project_dir in /app/*/; do
         continue
     fi
 
-    # Ignorar directorios que no son proyectos (como archivos sueltos)
-    if [ -d "$project_dir" ]; then
-        # Verificar si existe un README.md en el proyecto
-        if [ -f "${project_dir}README.md" ]; then
-            # Leer el título del README si existe (primera línea que empieza con #)
-            project_title=$(grep -m 1 "^#" "${project_dir}README.md" | sed 's/^#* *//')
+    # Leer el título del README si existe (primera línea que empieza con #)
+    project_title=$(grep -m 1 "^#" "${project_dir}README.md" | sed 's/^#* *//')
 
-            if [ -n "$project_title" ]; then
-                echo "- [${project_title}](${project_name}/)" >> /app/README.md
-            else
-                # Si no hay título, usar el nombre del directorio
-                formatted_name=$(echo "$project_name" | tr '-' ' ' | sed 's/\b\w/\u&/g')
-                echo "- [${formatted_name}](${project_name}/)" >> /app/README.md
-            fi
-        else
-            # Si no hay README, usar el nombre del directorio formateado
-            formatted_name=$(echo "$project_name" | tr '-' ' ' | sed 's/\b\w/\u&/g')
-            echo "- [${formatted_name}](${project_name}/)" >> /app/README.md
-        fi
+    if [ -z "$project_title" ]; then
+        project_title=$(echo "$project_name" | tr '-' ' ' | sed 's/\b\w/\u&/g')
     fi
+    
+    echo "- [${project_title}](${project_name}/)  " >> /app/README.md
 done
 
 # Agregar footer
