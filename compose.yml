@@ -8,11 +8,9 @@ services:
     env_file:
       - .env
     volumes:
-      - ./web:/app
+      - ./web:/app/web:ro
       - ./README.md:/app/demo/README.md
       - security-auth-access:/etc/nginx/security
-    ports:
-      - 8420:80
 
 volumes:
   security-auth-access:
