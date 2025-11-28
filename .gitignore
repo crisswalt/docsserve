@@ -2,5 +2,5 @@
 .secrets
 commits.sh
 
-web/README.md
-web/_navbar.md
+overrides/*.yml
+compose

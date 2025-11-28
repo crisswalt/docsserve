@@ -1,285 +1,427 @@
 # DocsServe
 
-**DocsServe** es un servidor de documentación estático ligero y flexible que utiliza [Docsify](https://docsify.js.org/) para renderizar archivos Markdown como sitios web de documentación profesional. Diseñado para ejecutarse en contenedores Docker con Nginx, ofrece autenticación por proyecto y generación automática de índices.
+**DocsServe** is a lightweight, flexible static documentation server that uses [Docsify](https://docsify.js.org/) to render Markdown files as professional documentation websites. Designed to run in Docker containers with Nginx, it offers project-based authentication and automatic index generation.
 
-## Características
+## Features
 
-- **Servidor Nginx optimizado**: Basado en la imagen oficial de Nginx para alto rendimiento
-- **Renderizado Docsify**: Convierte archivos Markdown en documentación interactiva sin necesidad de compilación
-- **Autenticación multinivel**: Soporta autenticación HTTP Basic tanto global como por proyecto
-- **Generación automática de índices**: Crea dinámicamente la página principal con enlaces a todos los proyectos, con soporte para exclusiones personalizadas
-- **Auto-navegación con breadcrumbs**: Navegación contextual automática en todos los documentos
-- **Búsqueda integrada**: Búsqueda en tiempo real en toda la documentación
-- **Hot-reload**: Los cambios en archivos Markdown se reflejan instantáneamente sin reiniciar el contenedor
-- **Listado de directorios**: Navegación visual de archivos cuando no existe un README.md
+- **Optimized Nginx server**: Built on the official Nginx image for high performance
+- **Docsify rendering**: Converts Markdown files into interactive documentation without compilation
+- **Multi-level authentication**: Supports HTTP Basic authentication both globally and per-project
+- **Hashed password support**: Compatible with Apache htpasswd formats (SHA-512, SHA-256, bcrypt)
+- **Automatic index generation**: Dynamically creates the main page with links to all projects
+- **Auto-navigation with breadcrumbs**: Automatic contextual navigation across all documents
+- **Integrated search**: Real-time search across all documentation
+- **Hot-reload**: Changes to Markdown files are instantly reflected without container restart
+- **Syntax highlighting**: Code blocks with Prism.js support
 
-## Requisitos
+## Requirements
 
 - Docker
 - Docker Compose
 
-## Instalación y Uso
+## Installation and Usage
 
-### 1. Clonar el repositorio
+### 1. Clone the repository
 
 ```bash
 git clone <repository-url>
 cd DocsServe
 ```
 
-### 2. Configurar variables de entorno
+### 2. Configure environment variables
 
-Crea un archivo `.env` basado en `.env-example`:
+Create a `.env` file based on `.env-example`:
 
 ```bash
 cp .env-example .env
 ```
 
-Edita el archivo `.env` para configurar el entorno, autenticación y exclusiones:
+Edit the `.env` file to configure environment, authentication, and exclusions:
 
 ```env
-# Modo de entorno
-ENVIRONMENT=production  # o 'development' para hot-reload
+# Environment mode
+ENVIRONMENT=production  # or 'development' for config hot-reload
 
-# Autenticación global (opcional)
-# Formato: usuario:contraseña
-AUTH_GLOBAL=admin:secretpassword
+# Global authentication (optional)
+# Format: username:password (or username:hashed_password)
+AUTH_GLOBAL=
 
-# Autenticación por proyecto (opcional)
-# Formato: nombre-proyecto:usuario:contraseña
-AUTH_PROJECT_1=ethersens:user1:pass123
-AUTH_PROJECT_2=demo:user2:pass456
+# Project-based authentication (optional)
+# Recommended naming: AUTH_PROJECT_[PROJECTNAME]_[USERNAME]
+# Format: project-name:username:password (or project-name:username:hashed_password)
+AUTH_PROJECT_MYAPP_ADMIN=myproject:admin:changeme
+AUTH_PROJECT_DOCS_USER=demo-docs:user:password123
 
-# Exclusión de directorios del índice (opcional)
-EXCLUDE_DIRS_DEFAULT=css js errors
-EXCLUDE_DIRS_CUSTOM=proyecto-secreto confidencial
+# Directory exclusions from index (optional)
+EXCLUDE_DIRS_DEFAULT=web
+EXCLUDE_DIRS_CUSTOM=
 ```
 
-### 3. Agregar documentación
-
-Coloca tus proyectos de documentación dentro del directorio `./web/`:
-
-```
-web/
-├── index.html           # Configuración de Docsify (no editar)
-├── README.md            # Generado automáticamente al iniciar
-├── proyecto-1/
-│   └── README.md        # Documentación del proyecto 1
-└── proyecto-2/
-    ├── README.md        # Documentación del proyecto 2
-    └── guia.md          # Documentos adicionales
-```
-
-### 4. Iniciar el servidor
+**Security Recommendation**: Use hashed passwords instead of plaintext:
 
 ```bash
-./start.sh
+# Generate SHA-512 hash (recommended)
+openssl passwd -6 'yourpassword'
+
+# Use in .env file
+AUTH_PROJECT1=myproject:admin:$6$rounds=5000$salt$hashedpasswordhere
 ```
 
-El script detectará automáticamente el modo de entorno desde `.env`:
-- **Production**: Despliega el contenedor estándar
-- **Development**: Habilita hot-reload para la configuración de Nginx
+### 3. Add documentation
 
-El servidor estará disponible en `http://localhost:8420`
+**Recommended approach**: Mount external documentation projects using Docker Compose overrides instead of placing files directly in `./web/`.
 
-### 5. Ver logs
+The `./web/` directory is reserved for DocsServe system files:
+- `index.html` - Docsify configuration (do not edit)
+- `README.md` - Auto-generated index (do not edit)
+- `css/`, `js/`, `errors/` - System assets
+
+**Do not** create project directories inside `./web/`. Instead, mount them via overrides (see step 4).
+
+### 4. Configure custom overrides
+
+Create custom Docker Compose overrides in the `./overrides/` directory to mount your documentation projects:
+
+```bash
+mkdir -p overrides
+```
+
+**Volume mounts** (`./overrides/compose-volumes-override.yml`):
+
+```yaml
+services:
+  docs-serve:
+    volumes:
+      - /path/to/project1/docs:/app/project1:ro
+      - /path/to/project2/docs:/app/project2:ro
+      - /home/user/another-repo/documentation:/app/another-project:ro
+```
+
+**Port configuration** (optional, `./overrides/compose-ports-override.yml`):
+
+```yaml
+services:
+  docs-serve:
+    ports:
+      - "8420:80"
+```
+
+Each documentation project should contain at least a `README.md` file at its root. The project will be accessible at `http://localhost:8420/project-name/`.
+
+**Note**: All `*.yml` files in `./overrides/` are gitignored by default, keeping your local configuration private.
+
+### 5. Start the server
+
+#### Basic usage (without overrides)
+
+```bash
+docker compose up -d
+```
+
+#### With custom overrides (recommended)
+
+If you have override files in `./overrides/`, compose them together:
+
+```bash
+docker compose -f compose.yml $(ls overrides/*.yml 2>/dev/null | sed 's/^/-f /') up -d
+```
+
+Or create a helper script:
+
+```bash
+# Start with all overrides
+docker compose -f compose.yml \
+  $(find overrides -name "*.yml" 2>/dev/null | xargs -I {} echo "-f {}") \
+  up -d
+```
+
+#### Development mode
+
+For development with Nginx config hot-reload:
+
+```bash
+docker compose -f compose.yml \
+  -f docker/development-compose.yml \
+  $(ls overrides/*.yml 2>/dev/null | sed 's/^/-f /') \
+  up -d
+```
+
+The server will be available at the configured port (default: 8420 in development mode).
+
+### 6. View logs
 
 ```bash
 docker compose logs -f
 ```
 
-### 6. Detener el servidor
-
-```bash
-./stop.sh
-```
-
-O manualmente:
+### 7. Stop the server
 
 ```bash
 docker compose down
 ```
 
-## Configuración
+**Tip**: To simplify working with overrides, create a bash alias or helper script:
 
-### Modo de Entorno
+```bash
+# Add to ~/.bashrc or ~/.zshrc
+alias dc-docs='docker compose -f compose.yml $(ls overrides/*.yml 2>/dev/null | sed "s/^/-f /")'
 
-DocsServe soporta dos modos de operación:
+# Usage
+dc-docs up -d
+dc-docs logs -f
+dc-docs down
+```
 
-#### Production (Producción)
+## Configuration
 
-Modo estándar para despliegue:
+### Environment Modes
+
+DocsServe supports two operation modes:
+
+#### Production (Default)
+
+Standard deployment mode:
 
 ```env
 ENVIRONMENT=production
 ```
 
-- Configuración de Nginx compilada en la imagen
-- Cambios en `default.conf` requieren rebuild: `docker compose build`
-- Optimizado para estabilidad
+- Nginx configuration baked into the image
+- Changes to `default.conf` require rebuild: `docker compose build`
+- Optimized for stability
+- Port mapping configured per deployment
 
-#### Development (Desarrollo)
+#### Development
 
-Modo de desarrollo con hot-reload:
+Development mode with hot-reload:
 
 ```env
 ENVIRONMENT=development
 ```
 
-- Monta `docker/default.conf` como volumen
-- Cambios en la configuración de Nginx se aplican con: `docker compose restart`
-- No requiere rebuild de la imagen
-- Ideal para experimentar con configuraciones
+- Mounts `docker/default.conf` as volume
+- Nginx config changes apply with: `docker compose restart`
+- No image rebuild required
+- Port 8420 exposed by default
+- Ideal for experimenting with configurations
 
-### Autenticación
+### Authentication
 
-DocsServe soporta dos tipos de autenticación HTTP Basic:
+DocsServe supports HTTP Basic authentication with both plaintext and hashed passwords.
 
-#### Autenticación Global
+#### Hashed Passwords (Recommended)
 
-Protege todo el sitio con un único usuario y contraseña:
+Generate hashed passwords using `openssl`:
 
-```env
-AUTH_GLOBAL=usuario:contraseña
+```bash
+# SHA-512 (recommended)
+openssl passwd -6 'yourpassword'
+
+# SHA-256
+openssl passwd -5 'yourpassword'
+
+# bcrypt (Apache compatible)
+openssl passwd -apr1 'yourpassword'
 ```
 
-#### Autenticación por Proyecto
-
-Protege proyectos específicos con credenciales independientes:
+Use the generated hash in your `.env` file:
 
 ```env
-AUTH_PROJECT_1=nombre-proyecto:usuario:contraseña
-AUTH_PROJECT_2=otro-proyecto:usuario2:contraseña2
+AUTH_PROJECT1=myproject:admin:$6$rounds=5000$salt$hashedpasswordhere
 ```
 
-El `nombre-proyecto` debe coincidir con el nombre del directorio en `./web/`.
+#### Global Authentication
 
-**Nota**: Si se define `AUTH_GLOBAL`, esta tiene prioridad sobre las autenticaciones por proyecto.
-
-### Exclusión de Directorios
-
-Puedes controlar qué directorios aparecen en el índice principal (`README.md`) generado automáticamente:
-
-#### Exclusiones por Defecto
-
-Los directorios del sistema se excluyen automáticamente:
+Protects the entire site with a single user and password:
 
 ```env
-EXCLUDE_DIRS_DEFAULT=css js errors
+AUTH_GLOBAL=username:password
+# or with hashed password
+AUTH_GLOBAL=username:$6$rounds=5000$salt$hashedpasswordhere
 ```
 
-Estos directorios contienen assets estáticos y páginas de error, no proyectos de documentación.
+#### Project-Based Authentication
 
-#### Exclusiones Personalizadas
-
-Para ocultar proyectos específicos del índice (por ejemplo, proyectos confidenciales o en desarrollo):
+Protects specific projects with independent credentials:
 
 ```env
-EXCLUDE_DIRS_CUSTOM=proyecto-secreto ultra-confidencial borrador
+# Recommended naming convention: AUTH_PROJECT_[PROJECTNAME]_[USERNAME]
+AUTH_PROJECT_MYAPP_ADMIN=myapp:admin:password
+AUTH_PROJECT_API_VIEWER=api-docs:viewer:password2
+AUTH_PROJECT_INTERNAL_DEVTEAM=internal:devteam:password3
+
+# Alternative simple naming (also works, but less organized)
+AUTH_PROJECT1=project-name:username:password
+AUTH_PROJECT2=another-project:username2:password2
 ```
 
-**Importante**: Los directorios excluidos siguen siendo accesibles directamente via URL si conoces la ruta (ej: `http://localhost:8420/proyecto-secreto/`). Para protegerlos completamente, combina la exclusión con autenticación por proyecto.
+**Variable Naming Convention (Recommended):**
+- Pattern: `AUTH_PROJECT_[PROJECTNAME]_[USERNAME]`
+- Benefits: Better organization, quick searching, easier to identify projects
+- Note: Any variable starting with `AUTH_PROJECT` will be processed
 
-#### Ejemplo de Protección Completa
+The `project-name` (first field in the value) must match the directory name where your documentation is mounted (e.g., `/app/myapp`).
 
-Para un proyecto ultra-secreto, combina exclusión + autenticación:
+**Note**: If `AUTH_GLOBAL` is defined, it takes priority over project-based authentication.
+
+### Directory Exclusions
+
+Control which directories appear in the auto-generated main index (`README.md`).
+
+#### Default Exclusions
+
+System directories are excluded automatically:
 
 ```env
-# Excluir del índice
-EXCLUDE_DIRS_CUSTOM=ultra-secreto
-
-# Proteger con autenticación
-AUTH_PROJECT_1=ultra-secreto:admin:password123
+EXCLUDE_DIRS_DEFAULT=web
 ```
 
-### Cambiar el puerto
+#### Custom Exclusions
 
-Edita [compose.yml](compose.yml) y modifica el mapeo de puertos:
+Hide specific projects from the index:
+
+```env
+EXCLUDE_DIRS_CUSTOM=secret-project ultra-confidential draft
+```
+
+**Important**: Excluded directories are still accessible directly via URL. For complete protection, combine exclusion with project authentication:
+
+```env
+# Hide from index
+EXCLUDE_DIRS_CUSTOM=ultra-secret
+
+# Protect with authentication
+AUTH_PROJECT1=ultra-secret:admin:password123
+```
+
+### Port Configuration
+
+**Recommended approach**: Create an override file in `./overrides/`:
 
 ```yaml
-ports:
-  - "8080:80"  # Cambiar 8420 por el puerto deseado
+# ./overrides/compose-ports-override.yml
+services:
+  docs-serve:
+    ports:
+      - "8080:80"  # Change port as needed
 ```
 
-### Personalizar Nginx
+Alternatively, edit:
+- **Base configuration**: [compose.yml](compose.yml) (not recommended, affects all deployments)
+- **Development mode**: [docker/development-compose.yml](docker/development-compose.yml) (default: 8420)
 
-La configuración de Nginx se encuentra en [docker/default.conf](docker/default.conf). Puedes modificar:
+### Custom Volume Mounts
 
-- Tipos MIME
-- Rutas de error
-- Configuración de autoindex
-- Timeouts y límites
+**This is the recommended way to add documentation projects** to DocsServe.
 
-## Estructura del Proyecto
+Use override files in `./overrides/` to mount external documentation projects:
+
+```yaml
+# ./overrides/compose-volumes-override.yml
+services:
+  docs-serve:
+    volumes:
+      - /path/to/external/project:/app/project-name:ro
+      - /another/project/docs:/app/another-project:ro
+```
+
+**Benefits of this approach:**
+- Documentation stays in its original repository
+- No need to copy or duplicate files
+- Changes in source repos are immediately reflected (after container restart)
+- Keeps `./web/` clean and reserved for DocsServe system files
+- Easy to add/remove projects without modifying core configuration
+
+**Important**: The `:ro` (read-only) flag is recommended to prevent accidental modifications from the container.
+
+### Nginx Customization
+
+The Nginx configuration is located in [docker/default.conf](docker/default.conf). You can modify:
+
+- MIME types
+- Error page routes
+- Timeouts and limits
+- URL rewriting rules
+
+## Project Structure
 
 ```
 DocsServe/
 ├── docker/
-│   ├── Dockerfile                  # Imagen Docker basada en nginx:latest
-│   ├── default.conf                # Configuración de Nginx
-│   ├── development-compose.yml     # Override para modo development
-│   └── entrypoint.sh               # Script de inicialización (genera auth + índice)
-├── web/                            # Directorio de documentación (montado como volumen)
-│   ├── index.html                  # Configuración de Docsify
-│   ├── README.md                   # Índice principal (generado automáticamente)
-│   └── [proyectos]/                # Tus proyectos de documentación
-├── compose.yml                     # Configuración de Docker Compose
-├── start.sh                        # Script de inicio (detecta ENVIRONMENT)
-├── stop.sh                         # Script de parada
-├── CLAUDE.md                       # Instrucciones para Claude Code
-└── README.md                       # Este archivo
+│   ├── Dockerfile                  # Docker image based on nginx:latest
+│   ├── default.conf                # Nginx configuration
+│   ├── development-compose.yml     # Development mode override
+│   └── entrypoint.sh               # Initialization script (auth + index)
+├── web/                            # DocsServe system files (mounted as volume)
+│   ├── index.html                  # Docsify configuration
+│   ├── README.md                   # Auto-generated index (do not edit)
+│   ├── css/                        # Custom styles
+│   ├── js/                         # Custom JavaScript
+│   └── errors/                     # Error pages (401.html, 403.html)
+├── overrides/                      # Custom Docker Compose overrides (gitignored)
+├── compose.yml                     # Base Docker Compose configuration
+├── .env-example                    # Environment variables template
+├── CLAUDE.md                       # Instructions for Claude Code
+└── README.md                       # This file
 ```
 
-## Funcionamiento Interno
+## How It Works
 
-### Al iniciar el contenedor
+### On Container Startup
 
-1. **Configuración de autenticación** ([entrypoint.sh:4-63](docker/entrypoint.sh#L4-L63))
-   - Lee variables de entorno `AUTH_*`
-   - Genera archivos `.htpasswd` para cada configuración
-   - Crea archivos de configuración Nginx dinámicos en `/etc/nginx/security/`
+1. **Authentication Configuration** ([docker/entrypoint.sh](docker/entrypoint.sh))
+   - Reads `AUTH_*` environment variables
+   - Supports both plaintext and hashed passwords
+   - Generates `.htpasswd` files for each configuration
+   - Creates dynamic Nginx configuration files in `/etc/nginx/security/`
 
-2. **Generación del índice principal** ([entrypoint.sh:78-129](docker/entrypoint.sh#L78-L129))
-   - Escanea directorios en `/app/`
-   - Excluye directorios definidos en `EXCLUDE_DIRS_DEFAULT` y `EXCLUDE_DIRS_CUSTOM`
-   - Extrae títulos de archivos README.md de cada proyecto
-   - Genera automáticamente `web/README.md` con enlaces a todos los proyectos
+2. **Main Index Generation** ([docker/entrypoint.sh](docker/entrypoint.sh))
+   - Scans directories in `/app/`
+   - Excludes directories defined in `EXCLUDE_DIRS_DEFAULT` and `EXCLUDE_DIRS_CUSTOM`
+   - Excludes directories without `README.md` files
+   - Extracts titles from project README.md files
+   - Auto-generates `web/README.md` with links to all projects
 
-3. **Inicio de Nginx** ([entrypoint.sh:122](docker/entrypoint.sh#L122))
-   - Sirve archivos estáticos desde `/app`
-   - Aplica configuraciones de autenticación
-   - Habilita autoindex para navegación de archivos
+3. **Nginx Startup**
+   - Serves static files from `/app`
+   - Applies authentication configurations
+   - URL rewriting: `/web/*.md` files accessible as `/*.md`
+   - Root redirects to `/web/`
 
-### Renderizado con Docsify
+### Docsify Rendering
 
-- Docsify se carga en el cliente ([web/index.html](web/index.html))
-- Convierte Markdown a HTML dinámicamente
-- Genera breadcrumbs automáticos basados en la ruta
-- Reescribe enlaces relativos para navegación correcta entre documentos
-- Proporciona búsqueda en tiempo real sin indexación previa
+- Docsify loads in the client ([web/index.html](web/index.html))
+- Converts Markdown to HTML dynamically
+- Generates automatic breadcrumbs based on path
+- Provides real-time search without prior indexing
+- Syntax highlighting with Prism.js
 
-## Desarrollo y Personalización
+## Development and Customization
 
-### Modificar la apariencia
+### Modify Appearance
 
-Edita [web/index.html](web/index.html) para cambiar:
+Edit [web/index.html](web/index.html) to change:
 
-- Tema de Docsify (`link rel="stylesheet"`)
-- Nombre del sitio (`name`)
-- Profundidad de búsqueda (`search.depth`)
-- Nivel de subniveles en TOC (`subMaxLevel`)
+- Docsify theme (`link rel="stylesheet"`)
+- Site name (`name`)
+- Search depth (`search.depth`)
+- TOC sublevel depth (`subMaxLevel`)
 
-### Agregar plugins de Docsify
+### Custom Styles
 
-Agrega scripts adicionales en [web/index.html](web/index.html):
+Modify [web/css/main.css](web/css/main.css) for custom styling.
+
+### Add Docsify Plugins
+
+Add additional scripts in [web/index.html](web/index.html):
 
 ```html
 <script src="https://cdn.jsdelivr.net/npm/docsify@4/lib/plugins/emoji.min.js"></script>
 ```
 
-Consulta la [documentación de Docsify](https://docsify.js.org/#/plugins) para más plugins.
+See [Docsify documentation](https://docsify.js.org/#/plugins) for more plugins.
 
-### Construir y publicar la imagen
+### Build and Publish Image
 
 ```bash
 docker compose build
@@ -288,60 +430,52 @@ docker push dassi0cl/docsserve:latest
 docker push dassi0cl/docsserve:v1.0.0
 ```
 
-## Casos de Uso
+## Use Cases
 
-- **Documentación técnica interna**: Protege documentos confidenciales con autenticación
-- **Wikis de equipo**: Comparte conocimiento en formato Markdown fácil de editar
-- **Portafolio de proyectos**: Presenta múltiples proyectos con documentación organizada
-- **Manuales de usuario**: Publica guías de usuario con búsqueda y navegación
-- **Knowledge base**: Centraliza documentación de múltiples áreas o departamentos
+- **Internal technical documentation**: Protect confidential documents with authentication
+- **Team wikis**: Share knowledge in easy-to-edit Markdown format
+- **Project portfolio**: Present multiple projects with organized documentation
+- **User manuals**: Publish user guides with search and navigation
+- **Knowledge base**: Centralize documentation from multiple areas or departments
 
 ## Troubleshooting
 
-### El contenedor no inicia
+### Container doesn't start
 
-Verifica los logs:
+Check the logs:
 ```bash
 docker compose logs docs-serve
 ```
 
-### No se aplica la autenticación
+### Authentication not working
 
-- Asegúrate de que las variables de entorno estén correctamente configuradas en `.env`
-- Verifica que el formato sea: `AUTH_PROJECT_X=proyecto:usuario:contraseña`
-- Reinicia el contenedor: `docker compose restart`
+- Verify environment variables are correctly configured in `.env`
+- Check format: `AUTH_PROJECT_[NAME]_[USER]=project:username:password`
+  - Variable name must start with `AUTH_PROJECT`
+  - Value format: `project-name:username:password`
+- For hashed passwords, ensure the hash is properly escaped
+- Restart container: `docker compose restart`
 
-### Los cambios en Markdown no se reflejan
+### Markdown changes not reflected
 
-- Docsify carga archivos dinámicamente, refresca la página del navegador
-- Si modificaste archivos dentro del contenedor, verifica que el volumen esté montado correctamente
+- Docsify loads files dynamically; refresh the browser page
+- Clear browser cache if necessary
+- Verify volume is mounted correctly
 
-### Error 404 en rutas de documentación
+### 404 errors on documentation routes
 
-- Verifica que existe un archivo `README.md` en el directorio del proyecto
-- Comprueba que los enlaces en Markdown usen rutas relativas correctas
+- Verify a `README.md` file exists in the project directory
+- Check that Markdown links use correct relative paths
+- Review Nginx logs for routing issues
 
-## Contribuir
+## Resources
 
-Las contribuciones son bienvenidas. Por favor:
-
-1. Haz fork del repositorio
-2. Crea una rama para tu feature (`git checkout -b feature/nueva-funcionalidad`)
-3. Commit tus cambios (`git commit -m 'Agrega nueva funcionalidad'`)
-4. Push a la rama (`git push origin feature/nueva-funcionalidad`)
-5. Abre un Pull Request
-
-## Licencia
-
-Este proyecto está bajo una licencia de código abierto. Consulta el archivo LICENSE para más detalles.
-
-## Recursos
-
-- [Documentación de Docsify](https://docsify.js.org/)
-- [Documentación de Nginx](https://nginx.org/en/docs/)
+- [Docsify Documentation](https://docsify.js.org/)
+- [Nginx Documentation](https://nginx.org/en/docs/)
 - [Docker Hub - Nginx](https://hub.docker.com/_/nginx)
-- [Guía de Markdown](https://www.markdownguide.org/)
+- [Markdown Guide](https://www.markdownguide.org/)
+- [Apache htpasswd](https://httpd.apache.org/docs/2.4/programs/htpasswd.html)
 
 ---
 
-**Hecho con Nginx + Docsify**
+**Built with Nginx + Docsify**
